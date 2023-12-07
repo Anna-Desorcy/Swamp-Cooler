@@ -11,6 +11,11 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 // temperature and humidity module
 DHT dht(DHT_PIN, DHT_TYPE);
 
+float temperature = 0;
+float humidity = 0;
+int waterLevel = 0;
+int waterPin = A5;
+
 void setup() {
   dht.begin();
 
@@ -19,23 +24,34 @@ void setup() {
 
 }
 
-  bool showTH = true;
-  float temperature = 0;
-  float humidity = 0;
-
 void loop() {
-  delay(2000);
+  delay(1000);
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
-  
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Temp: ");
-  lcd.print(temperature);
-  lcd.print(" C");
 
-  lcd.setCursor(0,1);
-  lcd.print("Humidity: ");
-  lcd.print(humidity);
-  lcd.print(" %");
+// ---Code for replacing analogRead()--- //
+  ADMUX = _BV(REFS0) | (0x05 & 0x0F); 
+  ADCSRA |= _BV(ADSC);
+  while(bit_is_set(ADCSRA,ADSC));
+  waterLevel = ADC;
+// ------------------------------------ //
+  if(waterLevel <= 100){
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Temp: ");
+    lcd.print(temperature);
+    lcd.print(" C");
+
+    lcd.setCursor(0,1);
+    lcd.print("Humidity: ");
+    lcd.print(humidity);
+    lcd.print(" %");
+  }
+  if(waterLevel > 100 & waterLevel <= 300){
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Water Level Low");
+    }
 }
+
+
